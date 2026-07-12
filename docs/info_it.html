@@ -1,0 +1,122 @@
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <style>
+      body { font-family: "DejaVu Sans", Arial, sans-serif; color: #e7f0fb; margin: 0; background: #091322; }
+      .wrap { padding: 18px; }
+      .hero {
+        background: linear-gradient(135deg, #10233d 0%, #173356 100%);
+        color: white;
+        padding: 22px 24px;
+        border: 1px solid #27476d;
+        border-radius: 18px;
+        margin-bottom: 18px;
+      }
+      .hero h1 { margin: 0 0 8px 0; font-size: 24px; }
+      .hero p { margin: 0; opacity: 0.96; line-height: 1.5; }
+      .badges { margin-top: 12px; }
+      .badge {
+        display: inline-block;
+        padding: 4px 10px;
+        border-radius: 999px;
+        margin: 0 8px 8px 0;
+        background: rgba(255, 255, 255, 0.12);
+        border: 1px solid rgba(255, 255, 255, 0.18);
+        font-size: 11px;
+        font-weight: 700;
+      }
+      .grid { width: 100%; border-collapse: separate; border-spacing: 14px; }
+      .grid td { vertical-align: top; width: 50%; }
+      .card {
+        background: #0e1a2d;
+        border: 1px solid #233b5c;
+        border-radius: 16px;
+        padding: 16px;
+      }
+      h2 { margin: 0 0 10px 0; color: #f2f7ff; font-size: 17px; }
+      p, li { line-height: 1.55; }
+      ul { margin: 0; padding-left: 18px; }
+      code {
+        background: #10233d;
+        border: 1px solid #2b4b72;
+        color: #f4f8ff;
+        padding: 2px 6px;
+        border-radius: 6px;
+      }
+      .muted { color: #9db3cf; }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <div class="hero">
+        <h1>Computo Metrico GIS</h1>
+        <p>
+          Plugin QGIS per trasformare geometrie, codici voce e prezziari in un computo metrico
+          estimativo completo, con archivio SQLite, catalogo regionale, contabilità lavori, report PDF/XLSX e progetto demo.
+        </p>
+        <div class="badges">
+          <span class="badge">QGIS 3.x</span>
+          <span class="badge">QGIS 4.99 ready</span>
+          <span class="badge">Qt6 aware</span>
+          <span class="badge">SQLite</span>
+          <span class="badge">PDF + XLSX + Mappa</span>
+        </div>
+      </div>
+
+      <table class="grid">
+        <tr>
+          <td>
+            <div class="card">
+              <h2>Workflow</h2>
+              <ul>
+                <li>Inizializza il database locale del plugin.</li>
+                <li>Usa il catalogo regionale per capire subito cosa è pronto, scaricabile o manuale.</li>
+                <li>Importa un dataset incluso, un file CSV/XLSX o un DCF leggibile.</li>
+                <li>Calcola quantità da punti, linee e poligoni con campi di precisione opzionali.</li>
+                <li>Gestisce SAL, certificato di pagamento e giornale lavori nella scheda Contabilità.</li>
+                <li>Genera PDF e XLSX con logo, intestazione, riferimenti e mappa corrente.</li>
+              </ul>
+            </div>
+          </td>
+          <td>
+            <div class="card">
+              <h2>Contesto locale</h2>
+              <p><b>Versione plugin:</b> __VERSION__</p>
+              <p><b>Directory dati:</b> <code>__DATA_DIR__</code></p>
+              <p><b>Database SQLite:</b> <code>__DB_PATH__</code></p>
+              <p><b>Prezziari caricati:</b> __PRICE_LISTS__</p>
+              <p><b>Run di computo salvati:</b> __RUNS__</p>
+            </div>
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <div class="card">
+              <h2>Catalogo e DCF</h2>
+              <p>
+                Il plugin distingue tra dataset già normalizzati, file ufficiali solo consultabili
+                e regioni ancora da convertire. Se il formato ufficiale non è pronto, crea un template
+                manuale già compatibile col parser.
+              </p>
+              <p>
+                I file <code>.dcf</code> sono supportati solo quando il contenitore espone dati leggibili
+                come ZIP, SQLite o tabella uniforme. Se il DCF è proprietario, il plugin lo segnala senza
+                importare dati ambigui.
+              </p>
+            </div>
+          </td>
+          <td>
+            <div class="card">
+              <h2>Formato prezziario</h2>
+              __FORMAT_HELP__
+              <p class="muted">
+                Se il plugin rileva colonne o valori non uniformi, mostra all’utente il formato corretto
+                e lascia comunque accessibili i file scaricati nella cartella locale.
+              </p>
+            </div>
+          </td>
+        </tr>
+      </table>
+    </div>
+  </body>
+</html>

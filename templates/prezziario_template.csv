@@ -1,0 +1,4 @@
+codice;descrizione;um;prezzo_unitario;categoria;note
+DEM-POINT-001;Picchetto topografico;cad;25,00;Rilievo;Una voce per ogni punto
+DEM-LINE-001;Recinzione metallica;ml;48,50;Opere lineari;Lunghezza calcolata dalla geometria
+DEM-AREA-001;Pavimentazione drenante;mq;36,20;Superfici;Area calcolata dalla geometria

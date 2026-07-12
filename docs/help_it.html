@@ -1,0 +1,172 @@
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <style>
+      body { font-family: "DejaVu Sans", Arial, sans-serif; color: #e6eef9; margin: 18px; line-height: 1.55; background: #091322; }
+      h1, h2 { color: #f4f8ff; }
+      .box {
+        border: 1px solid #233b5c;
+        background: #0e1a2d;
+        border-radius: 14px;
+        padding: 14px 16px;
+        margin-bottom: 18px;
+      }
+      code {
+        background: #10233d;
+        border: 1px solid #2b4b72;
+        color: #f4f8ff;
+        padding: 2px 6px;
+        border-radius: 6px;
+      }
+      table { border-collapse: collapse; width: 100%; margin: 12px 0; }
+      th, td { border: 1px solid #274160; padding: 8px; vertical-align: top; }
+      th { background: #10233d; text-align: left; }
+      ul, ol { padding-left: 20px; }
+      a { color: #9cc6ff; }
+    </style>
+  </head>
+  <body>
+    <h1>Help operativo</h1>
+
+    <div class="box">
+      <b>Obiettivo del plugin</b><br/>
+      Trasformare gli elementi del progetto QGIS in un computo metrico estimativo:
+      ogni feature richiama un codice voce di prezziario e la sua quantità viene calcolata
+      dalla geometria o letta da un campo manuale.
+    </div>
+
+    <h2>1. Flusso consigliato</h2>
+    <ol>
+      <li>Apri la scheda <b>Info</b> e crea il progetto demo se vuoi partire da un esempio già pronto.</li>
+      <li>Vai in <b>Prezziari</b> e usa prima il <b>Catalogo regionale</b>: per ogni regione vedi subito se il dataset è pronto, solo scaricabile oppure da compilare manualmente.</li>
+      <li>Se disponibile, importa il dataset locale pronto. In alternativa usa CSV/XLSX, un DCF leggibile, link salvati o download ufficiale.</li>
+      <li>Se il formato ufficiale non è direttamente importabile, crea il <b>template manuale</b> regionale e compila il CSV con la struttura richiesta.</li>
+      <li>Vai in <b>Misurazioni</b>, scegli il layer e verifica il mapping dei campi.</li>
+      <li>Clicca <b>Calcola computo dal layer</b>.</li>
+      <li>Vai in <b>Computo</b> per completare intestazione, logo, riferimenti e mappa del report.</li>
+      <li>Vai in <b>Contabilità</b> per generare SAL, certificato di pagamento, registro, libretto e giornale lavori.</li>
+    </ol>
+
+    <div class="box">
+      <b>Catalogo regionale</b><br/>
+      Il catalogo mostra tre stati:
+      <ul>
+        <li><b>Dataset pronto</b>: il plugin include già un file normalizzato e importabile.</li>
+        <li><b>Conversione manuale</b>: il portale ufficiale espone un file consultabile, ma non ancora affidabile per import diretto.</li>
+        <li><b>Portale censito</b>: la regione è presente, ma il dataset non è ancora bundle locale.</li>
+      </ul>
+      Il file scaricato viene sempre salvato in una cartella locale accessibile dal plugin.
+    </div>
+
+    <div class="box">
+      <b>Supporto DCF</b><br/>
+      Il plugin prova a leggere un file <code>.dcf</code> solo se è realmente interpretabile come:
+      <ul>
+        <li>contenitore ZIP con CSV/XLSX interni;</li>
+        <li>database SQLite con tabelle riconoscibili;</li>
+        <li>tabella testuale uniforme.</li>
+      </ul>
+      Se il DCF è proprietario o non documentato, il plugin lo rifiuta e chiede la conversione in CSV/XLSX.
+    </div>
+
+    <h2>2. Formato atteso dei layer</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Campo</th>
+          <th>Obbligatorio</th>
+          <th>Uso</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>item_code</code></td>
+          <td>Sì</td>
+          <td>Codice della voce presente nel prezziario attivo.</td>
+        </tr>
+        <tr>
+          <td><code>descrizione</code></td>
+          <td>No</td>
+          <td>Descrizione specifica della feature; se vuota viene usata quella del prezziario.</td>
+        </tr>
+        <tr>
+          <td><code>categoria</code></td>
+          <td>No</td>
+          <td>Raggruppamento di capitoli o lavorazioni.</td>
+        </tr>
+        <tr>
+          <td><code>quantita_man</code></td>
+          <td>No</td>
+          <td>Se compilata, sostituisce il calcolo geometrico automatico.</td>
+        </tr>
+        <tr>
+          <td><code>coefficiente</code></td>
+          <td>No</td>
+          <td>Moltiplicatore numerico applicato alla quantità finale.</td>
+        </tr>
+        <tr>
+          <td><code>unita_override</code></td>
+          <td>No</td>
+          <td>Forza l'unità di misura della singola feature.</td>
+        </tr>
+        <tr>
+          <td><code>larghezza_m</code></td>
+          <td>No</td>
+          <td>Permette di derivare superfici da linee e volumi da elementi lineari.</td>
+        </tr>
+        <tr>
+          <td><code>altezza_m</code></td>
+          <td>No</td>
+          <td>Permette di derivare volumi da linee o punti.</td>
+        </tr>
+        <tr>
+          <td><code>spessore_m</code></td>
+          <td>No</td>
+          <td>Permette di derivare volumi da poligoni o linee.</td>
+        </tr>
+        <tr>
+          <td><code>pezzi</code></td>
+          <td>No</td>
+          <td>Permette quantità a corpo più precise rispetto al semplice conteggio feature.</td>
+        </tr>
+        <tr>
+          <td><code>note</code></td>
+          <td>No</td>
+          <td>Annotazioni riportate nel dettaglio del report.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h2>3. Formato atteso dei prezziari</h2>
+    __FORMAT_HELP__
+
+    <h2>4. Regole di misura automatiche</h2>
+    <ul>
+      <li><code>mq</code> e <code>ha</code>: misura dell'area.</li>
+      <li><code>mq</code> su layer lineari: se presente <code>larghezza_m</code>, usa lunghezza x larghezza.</li>
+      <li><code>ml</code> e <code>km</code>: misura della lunghezza; per i poligoni usa il perimetro.</li>
+      <li><code>cad</code>: una unità per feature, oppure il valore del campo <code>pezzi</code>.</li>
+      <li><code>mc</code>: area x spessore oppure lunghezza x larghezza x altezza/spessore.</li>
+    </ul>
+
+    <h2>5. Report completo</h2>
+    <div class="box">
+      Nella scheda <b>Computo</b> puoi impostare:
+      <ul>
+        <li>logo del documento;</li>
+        <li>titolo, sottotitolo e organizzazione;</li>
+        <li>riferimenti multipli con pulsante <b>Add +</b>;</li>
+        <li>piè di pagina / note finali;</li>
+        <li>inclusione della mappa corrente nel PDF.</li>
+      </ul>
+      Il profilo viene salvato nel database locale del plugin.
+    </div>
+
+    <h2>6. Avvisi importanti</h2>
+    <ul>
+      <li>Usa un <b>CRS metrico proiettato</b> per evitare risultati incoerenti.</li>
+      <li>Se il plugin segnala dati non uniformi, correggi intestazioni o valori numerici prima di importare.</li>
+      <li>Se un codice voce non esiste nel prezziario attivo, il plugin lo segnala e assegna prezzo zero.</li>
+    </ul>
+  </body>
+</html>

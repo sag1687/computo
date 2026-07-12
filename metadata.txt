@@ -1,0 +1,33 @@
+[general]
+name=Computo Metrico GIS
+qgisMinimumVersion=3.22
+qgisMaximumVersion=4.99
+description=Computo metrico e contabilita lavori in QGIS con prezziari regionali o CSV/XLSX/DCF, SAL, report PDF/XLSX e progetto dimostrativo. / Bill of quantities and works accounting in QGIS with Italian regional price lists or CSV/XLSX/DCF files, progress payments (SAL), PDF/XLSX reports and a demo project.
+version=0.3.1
+author=Dott. Sarino Alfonso Grande
+email=info@sinocloud.it
+about=IT: Plugin sperimentale per computo metrico estimativo e contabilita lavori con database SQLite locale, import validato dei prezziari, misurazioni automatiche da geometrie, SAL, giornale lavori e reportistica professionale. I risultati vanno sempre verificati da un tecnico abilitato prima dell'uso contrattuale. / EN: Experimental plugin for bill of quantities and works accounting with a local SQLite database, validated price list import, automatic measurements from geometries, progress payments (SAL), works journal and professional reporting. Results must always be verified by a qualified professional before contractual use.
+category=Analysis
+icon=assets/icon.svg
+experimental=True
+deprecated=False
+hasProcessingProvider=False
+server=False
+tags=computo metrico,contabilita lavori,prezziario,bill of quantities,csv,xlsx,dcf,pdf,sqlite,qgis,report,sal,accounting
+homepage=https://plugins.qgis.org/plugins/author/Dott.%20Sarino%20Alfonso%20Grande/
+tracker=https://github.com/sag1687
+repository=https://github.com/sag1687
+changelog=0.3.1
+    - IT: README completo bilingue con workflow, schede, formati supportati, limiti operativi e premesse d'uso per plugin sperimentale
+    - EN: Complete bilingual README with workflow, tabs, supported formats, operational limits and usage premises for an experimental plugin
+    - IT: Pulizia repository: aggiunto .ruff_cache a .gitignore e rimosse cache locali del plugin
+    - EN: Repository cleanup: added .ruff_cache to .gitignore and removed local plugin cache directories
+    0.3.0
+    - IT: Etichettato come sperimentale; premesse e avvertenze d'uso in README e metadata
+    - EN: Labelled as experimental; usage disclaimers added to README and metadata
+    - IT: Hardening sicurezza: verifica certificati TLS attiva di default sui download dei prezziari (prima disattivata), validazione schema URL (solo http/https), quoting sicuro degli identificatori SQLite, parsing XML con rifiuto di DTD/entita (mitigazione XML bomb/XXE)
+    - EN: Security hardening: TLS certificate verification enabled by default on price list downloads (previously disabled), URL scheme validation (http/https only), safe SQLite identifier quoting, XML parsing rejecting DTD/entities (XML bomb/XXE mitigation)
+    - IT: Pulizia codice: rimossi import inutilizzati e file di cache, stile conforme anche a linter severi (W503/E241/E122), README bilingue IT/EN
+    - EN: Code cleanup: removed unused imports and cache files, style clean under strict linters too (W503/E241/E122), bilingual IT/EN README
+    0.2.1
+    - IT: Prezziari regionali, contabilita lavori, SAL, report PDF/XLSX e progetto dimostrativo / EN: Regional price lists, works accounting, SAL, PDF/XLSX reports and demo project
