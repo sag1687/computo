@@ -7,8 +7,16 @@ from pathlib import Path
 from urllib.parse import quote_plus, urljoin, urlparse
 from urllib.request import Request, urlopen
 
-
-DOWNLOADABLE_EXTENSIONS = {".csv", ".xlsx", ".xlsm", ".zip", ".xml", ".pdf", ".xls", ".dcf"}
+DOWNLOADABLE_EXTENSIONS = {
+    ".csv",
+    ".xlsx",
+    ".xlsm",
+    ".zip",
+    ".xml",
+    ".pdf",
+    ".xls",
+    ".dcf",
+}
 IMPORTABLE_EXTENSIONS = {".csv", ".xlsx", ".xlsm", ".zip", ".dcf"}
 SEARCH_TERMS = [
     "prezzario lavori pubblici",
@@ -55,7 +63,9 @@ class _AnchorCollector(HTMLParser):
     def handle_endtag(self, tag):
         if tag.lower() != "a" or not self._href:
             return
-        text = " ".join(part.strip() for part in self._text_parts if part.strip())
+        text = " ".join(
+            part.strip() for part in self._text_parts if part.strip()
+        )
         self.links.append((self._href, text))
         self._href = ""
         self._text_parts = []
@@ -63,14 +73,26 @@ class _AnchorCollector(HTMLParser):
 
 REGIONAL_SOURCES: list[RegionalSource] = [
     RegionalSource("abruzzo", "Abruzzo", "https://www.regione.abruzzo.it"),
-    RegionalSource("basilicata", "Basilicata", "https://www.regione.basilicata.it"),
+    RegionalSource(
+        "basilicata", "Basilicata", "https://www.regione.basilicata.it"
+    ),
     RegionalSource("calabria", "Calabria", "https://www.regione.calabria.it"),
     RegionalSource("campania", "Campania", "https://www.regione.campania.it"),
-    RegionalSource("emilia-romagna", "Emilia-Romagna", "https://www.regione.emilia-romagna.it"),
-    RegionalSource("friuli-venezia-giulia", "Friuli Venezia Giulia", "https://www.regione.fvg.it"),
+    RegionalSource(
+        "emilia-romagna",
+        "Emilia-Romagna",
+        "https://www.regione.emilia-romagna.it",
+    ),
+    RegionalSource(
+        "friuli-venezia-giulia",
+        "Friuli Venezia Giulia",
+        "https://www.regione.fvg.it",
+    ),
     RegionalSource("lazio", "Lazio", "https://www.regione.lazio.it"),
     RegionalSource("liguria", "Liguria", "https://www.regione.liguria.it"),
-    RegionalSource("lombardia", "Lombardia", "https://www.regione.lombardia.it"),
+    RegionalSource(
+        "lombardia", "Lombardia", "https://www.regione.lombardia.it"
+    ),
     RegionalSource("marche", "Marche", "https://www.regione.marche.it"),
     RegionalSource("molise", "Molise", "https://www.regione.molise.it"),
     RegionalSource("piemonte", "Piemonte", "https://www.regione.piemonte.it"),
@@ -78,10 +100,20 @@ REGIONAL_SOURCES: list[RegionalSource] = [
     RegionalSource("sardegna", "Sardegna", "https://www.regione.sardegna.it"),
     RegionalSource("sicilia", "Sicilia", "https://www.regione.sicilia.it"),
     RegionalSource("toscana", "Toscana", "https://www.regione.toscana.it"),
-    RegionalSource("trento", "Trentino-Alto Adige / Provincia di Trento", "https://www.provincia.tn.it"),
-    RegionalSource("bolzano", "Trentino-Alto Adige / Provincia di Bolzano", "https://www.provincia.bz.it"),
+    RegionalSource(
+        "trento",
+        "Trentino-Alto Adige / Provincia di Trento",
+        "https://www.provincia.tn.it",
+    ),
+    RegionalSource(
+        "bolzano",
+        "Trentino-Alto Adige / Provincia di Bolzano",
+        "https://www.provincia.bz.it",
+    ),
     RegionalSource("umbria", "Umbria", "https://www.regione.umbria.it"),
-    RegionalSource("valle-d-aosta", "Valle d'Aosta", "https://www.regione.vda.it"),
+    RegionalSource(
+        "valle-d-aosta", "Valle d'Aosta", "https://www.regione.vda.it"
+    ),
     RegionalSource("veneto", "Veneto", "https://www.regione.veneto.it"),
 ]
 
@@ -120,7 +152,9 @@ class RegionalPriceListService:
         else:
             # Opt-out esplicito solo per portali istituzionali con catene di
             # certificati non valide; mai attivo di default.
-            self._ssl_context = ssl._create_unverified_context()  # nosec B323 - opt-in esplicito
+            self._ssl_context = (
+                ssl._create_unverified_context()
+            )  # nosec B323 - opt-in esplicito
         self.request_timeout = request_timeout
         self.max_search_candidates = max_search_candidates
 
@@ -139,9 +173,16 @@ class RegionalPriceListService:
             return source.search_urls[0]
         return self._search_candidates(source)[0]
 
-    def download_latest(self, key: str, download_root: str, progress_callback=None) -> dict[str, str | bool]:
+    def download_latest(
+        self, key: str, download_root: str, progress_callback=None
+    ) -> dict[str, str | bool]:
         source = self.get_source(key)
-        self._emit_progress(progress_callback, 0, 0, f"Ricerca del prezziario ufficiale per {source.name}...")
+        self._emit_progress(
+            progress_callback,
+            0,
+            0,
+            f"Ricerca del prezziario ufficiale per {source.name}...",
+        )
         page_url, page_html = self._resolve_source_page(source)
         file_url = self._best_download_link(page_html, page_url, source)
         if not file_url and self._looks_like_download(page_url):
@@ -149,11 +190,15 @@ class RegionalPriceListService:
 
         if not file_url:
             raise RegionalSourceError(
-                "Nessun file prezziario individuato automaticamente sul portale ufficiale. "
-                "Usa il link ufficiale aperto dal plugin oppure registra un link manuale."
+                "Nessun file prezziario individuato automaticamente sul "
+                "portale ufficiale. "
+                "Usa il link ufficiale aperto dal plugin oppure registra un "
+                "link manuale."
             )
 
-        self._emit_progress(progress_callback, 0, 0, "Download del file ufficiale in corso...")
+        self._emit_progress(
+            progress_callback, 0, 0, "Download del file ufficiale in corso..."
+        )
         file_path = self._download_file(
             file_url,
             Path(download_root) / source.key,
@@ -169,7 +214,9 @@ class RegionalPriceListService:
             "importable": extension in IMPORTABLE_EXTENSIONS,
         }
 
-    def _emit_progress(self, progress_callback, downloaded: int, total: int, message: str):
+    def _emit_progress(
+        self, progress_callback, downloaded: int, total: int, message: str
+    ):
         if progress_callback:
             progress_callback(downloaded, total, message)
 
@@ -197,16 +244,22 @@ class RegionalPriceListService:
         return candidates
 
     def _fetch_text(self, url: str) -> str:
-        request = Request(_ensure_http_url(url), headers={"User-Agent": "ComputoMetricoGIS/0.2"})
+        request = Request(
+            _ensure_http_url(url),
+            headers={"User-Agent": "ComputoMetricoGIS/0.2"},
+        )
         with urlopen(  # nosec B310 - schema validato sopra
-                request, timeout=self.request_timeout, context=self._ssl_context) as response:
+            request, timeout=self.request_timeout, context=self._ssl_context
+        ) as response:
             content_type = response.headers.get("Content-Type", "").lower()
             payload = response.read()
         if "text/html" not in content_type and "xml" not in content_type:
             return payload.decode("utf-8", errors="ignore")
         return payload.decode("utf-8", errors="ignore")
 
-    def _extract_links(self, html: str, base_url: str) -> list[tuple[str, str]]:
+    def _extract_links(
+        self, html: str, base_url: str
+    ) -> list[tuple[str, str]]:
         parser = _AnchorCollector()
         parser.feed(html)
         links: list[tuple[str, str]] = []
@@ -215,7 +268,9 @@ class RegionalPriceListService:
             links.append((absolute, text))
         return links
 
-    def _score_page_link(self, url: str, text: str, source: RegionalSource) -> tuple[int, int, int]:
+    def _score_page_link(
+        self, url: str, text: str, source: RegionalSource
+    ) -> tuple[int, int, int]:
         haystack = f"{url} {text}".lower()
         keyword_hits = sum(1 for keyword in KEYWORDS if keyword in haystack)
         domain_bonus = 1 if _domain(url) == _domain(source.homepage) else 0
@@ -253,17 +308,22 @@ class RegionalPriceListService:
             return page_url, page_html
 
         raise RegionalSourceError(
-            f"Impossibile individuare automaticamente la pagina del prezziario per {source.name}."
+            f"Impossibile individuare automaticamente la pagina del "
+            f"prezziario per {source.name}."
         )
 
-    def _best_download_link(self, html: str, base_url: str, source: RegionalSource) -> str:
+    def _best_download_link(
+        self, html: str, base_url: str, source: RegionalSource
+    ) -> str:
         best: tuple[tuple[int, int, int, int], str] | None = None
         for url, text in self._extract_links(html, base_url):
             if not self._looks_like_download(url):
                 continue
             domain_bonus = 1 if _domain(url) == _domain(source.homepage) else 0
             haystack = f"{url} {text}".lower()
-            keyword_hits = sum(1 for keyword in KEYWORDS if keyword in haystack)
+            keyword_hits = sum(
+                1 for keyword in KEYWORDS if keyword in haystack
+            )
             year = _extract_year(haystack)
             extension = Path(urlparse(url).path).suffix.lower()
             extension_bonus = {
@@ -283,17 +343,29 @@ class RegionalPriceListService:
 
     def _looks_like_download(self, url: str) -> bool:
         path = urlparse(url).path.lower()
-        return any(path.endswith(extension) for extension in DOWNLOADABLE_EXTENSIONS)
+        return any(
+            path.endswith(extension) for extension in DOWNLOADABLE_EXTENSIONS
+        )
 
-    def _download_file(self, url: str, output_dir: Path, progress_callback=None) -> str:
+    def _download_file(
+        self, url: str, output_dir: Path, progress_callback=None
+    ) -> str:
         output_dir.mkdir(parents=True, exist_ok=True)
-        request = Request(_ensure_http_url(url), headers={"User-Agent": "ComputoMetricoGIS/0.2"})
+        request = Request(
+            _ensure_http_url(url),
+            headers={"User-Agent": "ComputoMetricoGIS/0.2"},
+        )
         with urlopen(  # nosec B310 - schema validato sopra
-                request, timeout=max(self.request_timeout, 30), context=self._ssl_context) as response:
+            request,
+            timeout=max(self.request_timeout, 30),
+            context=self._ssl_context,
+        ) as response:
             content_type = response.headers.get("Content-Type", "").lower()
             total = int(response.headers.get("Content-Length", "0") or "0")
 
-            file_name = os.path.basename(urlparse(url).path) or "prezzario_scaricato"
+            file_name = (
+                os.path.basename(urlparse(url).path) or "prezzario_scaricato"
+            )
             file_name = _sanitize_filename(file_name)
             extension = Path(file_name).suffix.lower()
             if not extension:
@@ -323,13 +395,24 @@ class RegionalPriceListService:
                         progress_callback,
                         downloaded,
                         total,
-                        f"Scaricati {downloaded} byte{f' di {total}' if total else ''}",
+                        f"Scaricati {downloaded} "
+                        f"byte{f' di {total}' if total else ''}",
                     )
 
-        if preview[:200].lstrip().lower().startswith(b"<!doctype html") or preview[:50].lstrip().lower().startswith(b"<html"):
+        if preview[:200].lstrip().lower().startswith(
+            b"<!doctype html"
+        ) or preview[:50].lstrip().lower().startswith(b"<html"):
             if target.exists():
                 target.unlink()
-            raise RegionalSourceError("L'URL ufficiale ha restituito una pagina HTML invece del file da scaricare.")
+            raise RegionalSourceError(
+                "L'URL ufficiale ha restituito una pagina HTML invece del "
+                "file da scaricare."
+            )
 
-        self._emit_progress(progress_callback, downloaded, total or downloaded, "Download completato")
+        self._emit_progress(
+            progress_callback,
+            downloaded,
+            total or downloaded,
+            "Download completato",
+        )
         return str(target)

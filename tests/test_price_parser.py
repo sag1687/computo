@@ -1,6 +1,10 @@
 from zipfile import ZipFile
 
-from COMPUTO.price_parser import PriceListFormatError, normalize_price_rows, parse_decimal
+from COMPUTO.price_parser import (
+    PriceListFormatError,
+    normalize_price_rows,
+    parse_decimal,
+)
 from COMPUTO.xlsx_utils import write_workbook
 
 
@@ -38,7 +42,14 @@ def test_normalize_price_rows_reports_missing_columns():
 def test_normalize_price_rows_accepts_official_structured_headers():
     rows = [
         ["codice", "articolo", "um", "TOTALE_GENERALE", "tipologia", "voce"],
-        ["BAS2026/A.01.001.01", "Veicolo a caldo", "ora", "63.29", "NOLEGGI", "Veicolo peso totale:"],
+        [
+            "BAS2026/A.01.001.01",
+            "Veicolo a caldo",
+            "ora",
+            "63.29",
+            "NOLEGGI",
+            "Veicolo peso totale:",
+        ],
     ]
     price_list = normalize_price_rows(rows, list_name="Basilicata 2026")
     assert price_list.items[0].code == "BAS2026/A.01.001.01"
@@ -52,7 +63,15 @@ def test_load_price_list_from_zip_with_xlsx(tmp_path):
     zip_path = tmp_path / "prezziario.zip"
     write_workbook(
         xlsx_path,
-        [("Computo", [["codice", "descrizione", "um", "prezzo_unitario"], ["A-001", "Voce test", "mq", 12.5]])],
+        [
+            (
+                "Computo",
+                [
+                    ["codice", "descrizione", "um", "prezzo_unitario"],
+                    ["A-001", "Voce test", "mq", 12.5],
+                ],
+            )
+        ],
     )
     with ZipFile(zip_path, "w") as archive:
         archive.write(xlsx_path, arcname="cartella/prezziario.xlsx")

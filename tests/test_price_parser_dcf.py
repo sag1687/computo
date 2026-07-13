@@ -21,7 +21,8 @@ def test_load_price_list_from_sqlite_dcf(tmp_path: Path):
         )
         connection.execute(
             """
-            INSERT INTO prezziario(codice, descrizione, um, prezzo_unitario, categoria)
+            INSERT INTO prezziario(codice, descrizione, um, prezzo_unitario,
+            categoria)
             VALUES ('DCF-001', 'Voce da database', 'mq', 42.5, 'Pavimenti')
             """
         )

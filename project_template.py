@@ -52,7 +52,9 @@ class TemplateProjectBuilder:
         ]
 
     def _create_memory_layer(self, geometry: str, layer_name: str):
-        layer = QgsVectorLayer(f"{geometry}?crs={self.crs.authid()}", layer_name, "memory")
+        layer = QgsVectorLayer(
+            f"{geometry}?crs={self.crs.authid()}", layer_name, "memory"
+        )
         provider = layer.dataProvider()
         provider.addAttributes(self._fields())
         layer.updateFields()
@@ -79,7 +81,9 @@ class TemplateProjectBuilder:
                 "Voce a corpo/pezzi (cad) per singolo punto",
             ]
         )
-        point_feature.setGeometry(QgsGeometry.fromPointXY(QgsPointXY(500000, 4649500)))
+        point_feature.setGeometry(
+            QgsGeometry.fromPointXY(QgsPointXY(500000, 4649500))
+        )
         point_layer.dataProvider().addFeatures([point_feature])
 
         line_feature = QgsFeature(line_layer.fields())
@@ -95,7 +99,8 @@ class TemplateProjectBuilder:
                 None,
                 None,
                 None,
-                "Lunghezza (ml) calcolata automaticamente dal tracciato lineare",
+                "Lunghezza (ml) calcolata automaticamente dal tracciato "
+                "lineare",
             ]
         )
         line_feature.setGeometry(
@@ -122,18 +127,21 @@ class TemplateProjectBuilder:
                 None,
                 0.12,
                 None,
-                "Volume calcolato (mc) = Area geometria (1.200 mq) x spessore_m (0,12 m)",
+                "Volume calcolato (mc) = Area geometria (1.200 mq) x "
+                "spessore_m (0,12 m)",
             ]
         )
         polygon_feature.setGeometry(
             QgsGeometry.fromPolygonXY(
-                [[
-                    QgsPointXY(500020, 4649400),
-                    QgsPointXY(500060, 4649400),
-                    QgsPointXY(500060, 4649370),
-                    QgsPointXY(500020, 4649370),
-                    QgsPointXY(500020, 4649400),
-                ]]
+                [
+                    [
+                        QgsPointXY(500020, 4649400),
+                        QgsPointXY(500060, 4649400),
+                        QgsPointXY(500060, 4649370),
+                        QgsPointXY(500020, 4649370),
+                        QgsPointXY(500020, 4649400),
+                    ]
+                ]
             )
         )
         polygon_layer.dataProvider().addFeatures([polygon_feature])
@@ -150,10 +158,17 @@ class TemplateProjectBuilder:
     def _apply_styles(self, layer, geometry_family: str):
         if geometry_family == "point":
             symbol = QgsMarkerSymbol.createSimple(
-                {"name": "circle", "color": "#0f766e", "size": "3.2", "outline_color": "#ffffff"}
+                {
+                    "name": "circle",
+                    "color": "#0f766e",
+                    "size": "3.2",
+                    "outline_color": "#ffffff",
+                }
             )
         elif geometry_family == "line":
-            symbol = QgsLineSymbol.createSimple({"color": "#d97706", "width": "0.9"})
+            symbol = QgsLineSymbol.createSimple(
+                {"color": "#d97706", "width": "0.9"}
+            )
         else:
             symbol = QgsFillSymbol.createSimple(
                 {
@@ -183,7 +198,9 @@ class TemplateProjectBuilder:
         if geometry_family == "point":
             pal_settings.placement = QgsPalLayerSettings.Placement.OverPoint
             pal_settings.yOffset = 2.5
-            pal_settings.placementFlags = QgsPalLayerSettings.OffsetType.FromPoint
+            pal_settings.placementFlags = (
+                QgsPalLayerSettings.OffsetType.FromPoint
+            )
         elif geometry_family == "line":
             pal_settings.placement = QgsPalLayerSettings.Placement.Line
         else:
@@ -211,18 +228,26 @@ class TemplateProjectBuilder:
         writer = QgsVectorFileWriter
         transform_context = QgsProject.instance().transformContext()
         if hasattr(writer, "writeAsVectorFormatV3"):
-            result = writer.writeAsVectorFormatV3(layer, gpkg_path, transform_context, options)
+            result = writer.writeAsVectorFormatV3(
+                layer, gpkg_path, transform_context, options
+            )
         else:  # pragma: no cover - compatibility fallback
-            result = writer.writeAsVectorFormatV2(layer, gpkg_path, transform_context, options)
+            result = writer.writeAsVectorFormatV2(
+                layer, gpkg_path, transform_context, options
+            )
 
         if not self._writer_result_ok(result):
-            raise RuntimeError(f"Impossibile salvare il layer demo '{layer.name()}'.")
+            raise RuntimeError(
+                f"Impossibile salvare il layer demo '{layer.name()}'."
+            )
 
     def _build_project(self, project_path: str, gpkg_path: str):
         try:
             project = QgsProject()
         except Exception as exc:  # pragma: no cover - defensive fallback
-            raise RuntimeError("QGIS non supporta la creazione del progetto demo.") from exc
+            raise RuntimeError(
+                "QGIS non supporta la creazione del progetto demo."
+            ) from exc
 
         project.setTitle("Computo Metrico Demo")
         project.setCrs(self.crs)
@@ -235,7 +260,9 @@ class TemplateProjectBuilder:
             ("cm_linee", "line"),
             ("cm_poligoni", "polygon"),
         ):
-            layer = QgsVectorLayer(f"{gpkg_path}|layername={layer_name}", layer_name, "ogr")
+            layer = QgsVectorLayer(
+                f"{gpkg_path}|layername={layer_name}", layer_name, "ogr"
+            )
             if not layer.isValid():
                 raise RuntimeError(f"Layer demo '{layer_name}' non valido.")
             self._apply_styles(layer, geometry_family)
@@ -264,56 +291,113 @@ class TemplateProjectBuilder:
         content = (
             "Computo Metrico GIS - Progetto Demo\n\n"
             "1. Apri il file computo_metrico_demo.qgs in QGIS.\n"
-            "2. Il file prezziario_demo.csv viene importato automaticamente nel plugin al momento della creazione del progetto demo (se necessiti di re-importarlo, trovi il file nella cartella e puoi caricarlo dalla scheda Prezziari).\n"
-            "3. Seleziona uno dei layer demo: cm_punti, cm_linee, cm_poligoni.\n"
-            "4. Verifica il mapping dei campi (il plugin rileva automaticamente 'item_code', 'descrizione', 'spessore_m', ecc.).\n"
-            "5. Clicca su 'Calcola Computo e Risultati' per generare il computo e vedere il dettaglio delle quantità misurate e dei costi.\n\n"
+            "2. Il file prezziario_demo.csv viene importato automaticamente "
+            "nel plugin al momento della creazione del progetto demo (se "
+            "necessiti di re-importarlo, trovi il file nella cartella e puoi "
+            "caricarlo dalla scheda Prezziari).\n"
+            "3. Seleziona uno dei layer demo: cm_punti, cm_linee, "
+            "cm_poligoni.\n"
+            "4. Verifica il mapping dei campi (il plugin rileva "
+            "automaticamente 'item_code', 'descrizione', 'spessore_m', "
+            "ecc.).\n"
+            "5. Clicca su 'Calcola Computo e Risultati' per generare il "
+            "computo e vedere il dettaglio delle quantità misurate e dei "
+            "costi.\n\n"
             "COME VENGONO CALCOLATE LE QUANTITA' E I COSTI:\n"
-            "Il motore di calcolo legge l'Unità di Misura (UM) della voce del prezziario (oppure dal campo 'unita_override') e applica automaticamente le seguenti regole:\n\n"
+            "Il motore di calcolo legge l'Unità di Misura (UM) della voce del "
+            "prezziario (oppure dal campo 'unita_override') e applica "
+            "automaticamente le seguenti regole:\n\n"
             "1. Superfici (mq, ha):\n"
-            "   - Poligoni: calcola l'Area geometrica reale nel CRS proiettato del progetto.\n"
+            "   - Poligoni: calcola l'Area geometrica reale nel CRS "
+            "proiettato del progetto.\n"
             "   - Linee: calcola Lunghezza tracciato × larghezza_m.\n"
             "   - Punti: calcola larghezza_m × altezza_m.\n\n"
             "2. Lunghezze (ml, km):\n"
             "   - Linee: calcola la Lunghezza reale del tracciato.\n"
             "   - Poligoni: calcola il Perimetro del poligono.\n\n"
             "3. Volumi (mc):\n"
-            "   - Poligoni: calcola Area geometrica × spessore_m (oppure altezza_m).\n"
-            "     * Esempio operativo nel layer demo cm_poligoni (DEM-AREA-001 in mc):\n"
-            "       L'area del poligono misurata da QGIS è esattamente 1.200 mq (40m x 30m).\n"
-            "       Poiché la voce di prezziario richiede metri cubi (mc) e il campo 'spessore_m' è impostato a 0,12 m:\n"
+            "   - Poligoni: calcola Area geometrica × spessore_m (oppure "
+            "altezza_m).\n"
+            "     * Esempio operativo nel layer demo cm_poligoni "
+            "(DEM-AREA-001 in mc):\n"
+            "       L'area del poligono misurata da QGIS è esattamente 1.200 "
+            "mq (40m x 30m).\n"
+            "       Poiché la voce di prezziario richiede metri cubi (mc) e "
+            "il campo 'spessore_m' è impostato a 0,12 m:\n"
             "       Quantità calcolata = 1.200 mq × 0,12 m = 144,00 mc.\n"
-            "       Costo totale feature = 144,00 mc × 85,00 €/mc = 12.240,00 €.\n"
-            "   - Linee: calcola Lunghezza × larghezza_m × spessore/altezza_m.\n"
+            "       Costo totale feature = 144,00 mc × 85,00 €/mc = 12.240,00 "
+            "€.\n"
+            "   - Linee: calcola Lunghezza × larghezza_m × "
+            "spessore/altezza_m.\n"
             "   - Punti: calcola larghezza_m × altezza_m × spessore_m.\n\n"
             "4. A corpo / Pezzi (cad):\n"
-            "   - Punti/Linee/Poligoni: legge il campo 'pezzi' (se vuoto o zero, vale 1 pezzo per ogni feature GIS).\n\n"
+            "   - Punti/Linee/Poligoni: legge il campo 'pezzi' (se vuoto o "
+            "zero, vale 1 pezzo per ogni feature GIS).\n\n"
             "5. Sovrascrittura Manuale ('quantita_man'):\n"
-            "   - Se per una feature il campo 'quantita_man' è valorizzato (es. 50.5), questo valore sostituisce del tutto il calcolo geometrico.\n\n"
+            "   - Se per una feature il campo 'quantita_man' è valorizzato "
+            "(es. 50.5), questo valore sostituisce del tutto il calcolo "
+            "geometrico.\n\n"
             "Moltiplicatore ('coefficiente'):\n"
-            "Qualsiasi quantità ricavata (geometrica o manuale) viene moltiplicata per il campo 'coefficiente' (es. per considerare quote parti, sfridi o ripetizioni. Se vuoto o 1.0, non altera il valore).\n\n"
+            "Qualsiasi quantità ricavata (geometrica o manuale) viene "
+            "moltiplicata per il campo 'coefficiente' (es. per considerare "
+            "quote parti, sfridi o ripetizioni. Se vuoto o 1.0, non altera il "
+            "valore).\n\n"
             "Campi principali presenti nei layer demo:\n"
             "- item_code: codice voce del prezziario (obbligatorio)\n"
             "- descrizione: testo opzionale da usare nel report\n"
             "- categoria: raggruppamento opzionale\n"
             "- coefficiente: moltiplicatore numerico opzionale\n"
-            "- quantita_man: quantità manuale (se valorizzata, sovrascrive la misura geometrica)\n"
-            "- unita_override: consente di forzare l'UM per la singola feature\n"
-            "- larghezza_m / altezza_m / spessore_m: dimensioni geometriche integrative per sezioni, aree o volumi\n"
+            "- quantita_man: quantità manuale (se valorizzata, sovrascrive la "
+            "misura geometrica)\n"
+            "- unita_override: consente di forzare l'UM per la singola "
+            "feature\n"
+            "- larghezza_m / altezza_m / spessore_m: dimensioni geometriche "
+            "integrative per sezioni, aree o volumi\n"
             "- pezzi: per quantità a cad integrate\n"
-            "- note: annotazioni (dove il plugin riporta anche la spiegazione esatta del calcolo effettuato)\n\n"
+            "- note: annotazioni (dove il plugin riporta anche la spiegazione "
+            "esatta del calcolo effettuato)\n\n"
             "Nota sul CRS (Sistema di Riferimento Coordinate):\n"
-            "Il progetto demo usa EPSG:32633 come esempio metrico proiettato, fondamentale affinché le misure lineari e di superficie in QGIS siano esatte in metri e metri quadri.\n"
+            "Il progetto demo usa EPSG:32633 come esempio metrico proiettato, "
+            "fondamentale affinché le misure lineari e di superficie in QGIS "
+            "siano esatte in metri e metri quadri.\n"
         )
         Path(instructions_path).write_text(content, encoding="utf-8")
 
     def _write_demo_price_list(self, output_dir: str) -> str:
         csv_path = os.path.join(output_dir, "prezziario_demo.csv")
         rows = [
-            ["codice", "descrizione", "um", "prezzo_unitario", "categoria", "note"],
-            ["DEM-POINT-001", "Picchetto topografico", "cad", "85,00", "Rilievo", "Voce a corpo su punto"],
-            ["DEM-LINE-001", "Recinzione metallica", "ml", "54,80", "Opere lineari", "Sviluppo misurato da linea"],
-            ["DEM-AREA-001", "Pavimentazione drenante con sottofondo", "mc", "85,00", "Superfici", "Volume da area x spessore"],
+            [
+                "codice",
+                "descrizione",
+                "um",
+                "prezzo_unitario",
+                "categoria",
+                "note",
+            ],
+            [
+                "DEM-POINT-001",
+                "Picchetto topografico",
+                "cad",
+                "85,00",
+                "Rilievo",
+                "Voce a corpo su punto",
+            ],
+            [
+                "DEM-LINE-001",
+                "Recinzione metallica",
+                "ml",
+                "54,80",
+                "Opere lineari",
+                "Sviluppo misurato da linea",
+            ],
+            [
+                "DEM-AREA-001",
+                "Pavimentazione drenante con sottofondo",
+                "mc",
+                "85,00",
+                "Superfici",
+                "Volume da area x spessore",
+            ],
         ]
         with open(csv_path, "w", encoding="utf-8", newline="") as handle:
             writer = csv.writer(handle, delimiter=";")
@@ -326,13 +410,22 @@ class TemplateProjectBuilder:
             subtitle="Esempio operativo completo generato dal plugin",
             organization="Computo Metrico GIS",
             logo_path=os.path.join(self.plugin_dir, "assets", "icon.svg"),
-            footer_text="Documento demo generato automaticamente dal progetto di esempio.",
+            footer_text=(
+                "Documento demo generato automaticamente dal progetto di "
+                "esempio."),
             include_map=False,
             map_title="Mappa demo",
             references=[
-                ReportReference(label="Progetto", value="Computo metrico demo"),
-                ReportReference(label="Prezziario", value="prezziario_demo.csv"),
-                ReportReference(label="Uso", value="Esempio completo di computo e contabilita"),
+                ReportReference(
+                    label="Progetto", value="Computo metrico demo"
+                ),
+                ReportReference(
+                    label="Prezziario", value="prezziario_demo.csv"
+                ),
+                ReportReference(
+                    label="Uso",
+                    value="Esempio completo di computo e contabilita",
+                ),
             ],
         )
 
@@ -429,11 +522,17 @@ class TemplateProjectBuilder:
         computo_pdf = os.path.join(output_demo_dir, "computo_demo.pdf")
         computo_xlsx = os.path.join(output_demo_dir, "computo_demo.xlsx")
         contabilita_pdf = os.path.join(output_demo_dir, "contabilita_demo.pdf")
-        contabilita_xlsx = os.path.join(output_demo_dir, "contabilita_demo.xlsx")
+        contabilita_xlsx = os.path.join(
+            output_demo_dir, "contabilita_demo.xlsx"
+        )
 
-        report_html = build_report_html(metadata, summary_rows, detail_rows, profile=profile)
+        report_html = build_report_html(
+            metadata, summary_rows, detail_rows, profile=profile
+        )
         export_pdf(computo_pdf, report_html)
-        export_xlsx(computo_xlsx, metadata, summary_rows, detail_rows, profile=profile)
+        export_xlsx(
+            computo_xlsx, metadata, summary_rows, detail_rows, profile=profile
+        )
 
         sal_record = {
             "sal_number": 1,
@@ -450,7 +549,9 @@ class TemplateProjectBuilder:
                 "title": "Avvio cantiere",
                 "weather": "Sereno",
                 "workers": "3 operatori",
-                "description": "Installazione picchetti, recinzione e lavorazioni di superficie.",
+                "description": (
+                    "Installazione picchetti, recinzione e lavorazioni di "
+                    "superficie."),
             }
         ]
         accounting_html = build_accounting_html(
@@ -496,7 +597,9 @@ class TemplateProjectBuilder:
 
         self._build_project(project_path, gpkg_path)
         shutil.copyfile(
-            os.path.join(self.plugin_dir, "templates", "prezziario_template.csv"),
+            os.path.join(
+                self.plugin_dir, "templates", "prezziario_template.csv"
+            ),
             csv_path,
         )
         demo_price_list_path = self._write_demo_price_list(output_dir)
@@ -508,7 +611,9 @@ class TemplateProjectBuilder:
             "gpkg_path": gpkg_path,
             "csv_path": csv_path,
             "demo_price_list_path": demo_price_list_path,
-            "instructions_path": os.path.join(output_dir, "ISTRUZIONI_PROGETTO.txt"),
+            "instructions_path": os.path.join(
+                output_dir, "ISTRUZIONI_PROGETTO.txt"
+            ),
         }
         result.update(demo_outputs)
         return result

@@ -1,6 +1,9 @@
 from pathlib import Path
 
-from COMPUTO.regional_catalog import ensure_manual_template, load_regional_catalog
+from COMPUTO.regional_catalog import (
+    ensure_manual_template,
+    load_regional_catalog,
+)
 
 
 def test_load_regional_catalog_includes_bundled_basilicata():
@@ -15,7 +18,8 @@ def test_load_regional_catalog_includes_bundled_basilicata():
 
 def test_ensure_manual_template_creates_csv_and_readme(tmp_path: Path):
     plugin_dir = Path(__file__).resolve().parents[1]
-    entry = next(entry for entry in load_regional_catalog(str(plugin_dir), "") if entry.key == "calabria")
+    entries = load_regional_catalog(str(plugin_dir), "")
+    entry = next(entry for entry in entries if entry.key == "calabria")
 
     created = ensure_manual_template(str(tmp_path), entry)
     csv_text = Path(created["csv_path"]).read_text(encoding="utf-8")

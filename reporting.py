@@ -2,8 +2,44 @@ from pathlib import Path
 from html import escape
 
 from .models import ReportMetadata, ReportProfile
-from .qt_compat import PRINTER_HIGH_RESOLUTION, PRINTER_PDF_FORMAT, QPrinter, QTextDocument
+from .qt_compat import (
+    PRINTER_HIGH_RESOLUTION,
+    PRINTER_PDF_FORMAT,
+    QPrinter,
+    QTextDocument,
+)
 from .xlsx_utils import write_workbook
+
+_REPORT_STYLE = """
+          body { font-family: Arial, sans-serif; color: #1c2735; margin: 24px;
+          }
+          h1 { color: #14365c; margin: 0 0 6px 0; }
+          h2 { color: #1f2933; margin-top: 28px; }
+          .header { width: 100%; border-collapse: collapse; margin-bottom:
+          18px; }
+          .header td { border: none; vertical-align: top; padding: 0; }
+          .logo-box { width: 150px; }
+          .logo { max-width: 140px; max-height: 90px; }
+          .subtitle { margin: 0; color: #45607d; }
+          .org { margin: 6px 0 0 0; color: #27415e; font-weight: bold; }
+          .meta { background: #eef4fb; border: 1px solid #c7d8eb; padding:
+          12px; border-radius: 8px; }
+          .badge { display: inline-block; background: #14365c; color: white;
+          padding: 4px 10px; border-radius: 999px; font-size: 11px;
+          margin-right: 6px; }
+          table { width: 100%; border-collapse: collapse; margin-top: 12px; }
+          th, td { border: 1px solid #d6dee5; padding: 8px; font-size: 11px;
+          vertical-align: top; }
+          th { background: #e8f0fa; text-align: left; }
+          td.num { text-align: right; white-space: nowrap; }
+          .total { margin-top: 14px; font-size: 16px; font-weight: bold;
+          text-align: right; }
+          .refs th { width: 28%; background: #f4f7fb; }
+          .map-box { margin-top: 14px; text-align: center; }
+          .map { width: 100%; max-width: 760px; border: 1px solid #cfd8e3; }
+          .footer-note { margin-top: 22px; color: #415468; }
+          .page-break { page-break-before: always; }
+        """
 
 
 def format_number(value: float, decimals: int = 2) -> str:
@@ -31,9 +67,11 @@ def build_report_html(
             f"<td>{escape(str(row['code']))}</td>"
             f"<td>{escape(str(row['description']))}</td>"
             f"<td>{escape(str(row['unit']))}</td>"
-            f"<td class=\"num\">{format_number(float(row['quantity']), 4)}</td>"
+            f"<td "
+            f"class=\"num\">{format_number(float(row['quantity']), 4)}</td>"
             f"<td class=\"num\">{format_number(float(row['unit_price']))}</td>"
-            f"<td class=\"num\">{format_number(float(row['total_price']))}</td>"
+            f"<td "
+            f"class=\"num\">{format_number(float(row['total_price']))}</td>"
             f"<td>{escape(str(row.get('category') or ''))}</td>"
             "</tr>"
         )
@@ -48,9 +86,11 @@ def build_report_html(
             f"<td>{escape(str(row['price_code']))}</td>"
             f"<td>{escape(str(row['description']))}</td>"
             f"<td>{escape(str(row['unit']))}</td>"
-            f"<td class=\"num\">{format_number(float(row['quantity']), 4)}</td>"
+            f"<td "
+            f"class=\"num\">{format_number(float(row['quantity']), 4)}</td>"
             f"<td class=\"num\">{format_number(float(row['unit_price']))}</td>"
-            f"<td class=\"num\">{format_number(float(row['total_price']))}</td>"
+            f"<td "
+            f"class=\"num\">{format_number(float(row['total_price']))}</td>"
             f"<td>{escape(str(row.get('note') or ''))}</td>"
             "</tr>"
         )
@@ -60,8 +100,8 @@ def build_report_html(
     logo_html = ""
     if profile.logo_path and Path(profile.logo_path).exists():
         logo_html = (
-            f'<div class="logo-box"><img class="logo" src="{_file_uri(profile.logo_path)}" /></div>'
-        )
+            f'<div class="logo-box"><img class="logo" '
+            f'src="{_file_uri(profile.logo_path)}" /></div>')
 
     references_html = ""
     if profile.references:
@@ -82,42 +122,33 @@ def build_report_html(
     map_html = ""
     if map_image_path and Path(map_image_path).exists():
         map_html = (
-            "<div class=\"page-break\"></div>"
+            '<div class="page-break"></div>'
             f"<h2>{escape(profile.map_title)}</h2>"
-            f'<div class="map-box"><img class="map" width="720" src="{_file_uri(map_image_path)}" /></div>'
+            f'<div class="map-box"><img class="map" width="720" '
+            f'src="{_file_uri(map_image_path)}" /></div>'
         )
 
-    organization_html = f"<p class=\"org\">{escape(profile.organization)}</p>" if profile.organization else ""
-    subtitle_html = f"<p class=\"subtitle\">{escape(profile.subtitle)}</p>" if profile.subtitle else ""
-    footer_html = f"<p class=\"footer-note\">{escape(profile.footer_text)}</p>" if profile.footer_text else ""
+    organization_html = (
+        f'<p class="org">{escape(profile.organization)}</p>'
+        if profile.organization
+        else ""
+    )
+    subtitle_html = (
+        f'<p class="subtitle">{escape(profile.subtitle)}</p>'
+        if profile.subtitle
+        else ""
+    )
+    footer_html = (
+        f'<p class="footer-note">{escape(profile.footer_text)}</p>'
+        if profile.footer_text
+        else ""
+    )
 
     return f"""
     <html>
       <head>
         <meta charset="utf-8" />
-        <style>
-          body {{ font-family: Arial, sans-serif; color: #1c2735; margin: 24px; }}
-          h1 {{ color: #14365c; margin: 0 0 6px 0; }}
-          h2 {{ color: #1f2933; margin-top: 28px; }}
-          .header {{ width: 100%; border-collapse: collapse; margin-bottom: 18px; }}
-          .header td {{ border: none; vertical-align: top; padding: 0; }}
-          .logo-box {{ width: 150px; }}
-          .logo {{ max-width: 140px; max-height: 90px; }}
-          .subtitle {{ margin: 0; color: #45607d; }}
-          .org {{ margin: 6px 0 0 0; color: #27415e; font-weight: bold; }}
-          .meta {{ background: #eef4fb; border: 1px solid #c7d8eb; padding: 12px; border-radius: 8px; }}
-          .badge {{ display: inline-block; background: #14365c; color: white; padding: 4px 10px; border-radius: 999px; font-size: 11px; margin-right: 6px; }}
-          table {{ width: 100%; border-collapse: collapse; margin-top: 12px; }}
-          th, td {{ border: 1px solid #d6dee5; padding: 8px; font-size: 11px; vertical-align: top; }}
-          th {{ background: #e8f0fa; text-align: left; }}
-          td.num {{ text-align: right; white-space: nowrap; }}
-          .total {{ margin-top: 14px; font-size: 16px; font-weight: bold; text-align: right; }}
-          .refs th {{ width: 28%; background: #f4f7fb; }}
-          .map-box {{ margin-top: 14px; text-align: center; }}
-          .map {{ width: 100%; max-width: 760px; border: 1px solid #cfd8e3; }}
-          .footer-note {{ margin-top: 22px; color: #415468; }}
-          .page-break {{ page-break-before: always; }}
-        </style>
+        <style>{_REPORT_STYLE}</style>
       </head>
       <body>
         <table class="header">
@@ -132,7 +163,8 @@ def build_report_html(
         </table>
         <div class="meta">
           <span class="badge">Run #{metadata.run_id}</span>
-          <span class="badge">CRS {escape(metadata.crs_authid or 'n.d.')}</span>
+          <span class="badge">CRS
+          {escape(metadata.crs_authid or 'n.d.')}</span>
           <p><b>Layer:</b> {escape(metadata.layer_name)}</p>
           <p><b>Prezziario:</b> {escape(metadata.price_list_name)}</p>
           <p><b>Generato il:</b> {escape(metadata.generated_at)}</p>
@@ -155,7 +187,8 @@ def build_report_html(
           </thead>
           <tbody>{summary_table}</tbody>
         </table>
-        <div class="total">Totale complessivo: € {format_number(total_amount)}</div>
+        <div class="total">Totale complessivo:
+        € {format_number(total_amount)}</div>
 
         <h2>Dettaglio elementi</h2>
         <table>
@@ -191,7 +224,9 @@ def export_pdf(path: str, html: str) -> None:
     printer.setOutputFileName(path)
     printer.setDocName("Computo Metrico GIS")
 
-    print_method = getattr(document, "print_", None) or getattr(document, "print")
+    print_method = getattr(document, "print_", None) or getattr(
+        document, "print"
+    )
     print_method(printer)
 
 
@@ -226,7 +261,15 @@ def export_xlsx(
         [
             [],
             ["Riepilogo computo"],
-            ["Codice", "Descrizione", "UM", "Quantità", "Prezzo unitario", "Totale", "Categoria"],
+            [
+                "Codice",
+                "Descrizione",
+                "UM",
+                "Quantità",
+                "Prezzo unitario",
+                "Totale",
+                "Categoria",
+            ],
         ]
     )
 
@@ -247,7 +290,18 @@ def export_xlsx(
         [
             [],
             ["Dettaglio elementi"],
-            ["Layer", "Feature ID", "Geometria", "Codice", "Descrizione", "UM", "Quantità", "Prezzo unitario", "Totale", "Note"],
+            [
+                "Layer",
+                "Feature ID",
+                "Geometria",
+                "Codice",
+                "Descrizione",
+                "UM",
+                "Quantità",
+                "Prezzo unitario",
+                "Totale",
+                "Note",
+            ],
         ]
     )
 
