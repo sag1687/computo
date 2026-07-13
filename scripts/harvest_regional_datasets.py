@@ -3,15 +3,16 @@ import json
 import sys
 from pathlib import Path
 
-
 ROOT = Path(__file__).resolve().parents[1]
 PACKAGE_PARENT = ROOT.parent
 if str(PACKAGE_PARENT) not in sys.path:
     sys.path.insert(0, str(PACKAGE_PARENT))
 
-from COMPUTO.price_parser import PriceListFormatError, load_price_list  # noqa: E402
+from COMPUTO.price_parser import (  # noqa: E402
+    PriceListFormatError,
+    load_price_list,
+)
 from COMPUTO.regional_sources import RegionalPriceListService  # noqa: E402
-
 
 OUTPUT_CATALOG = ROOT / "data" / "regions_catalog.json"
 RAW_DIR = ROOT / "data" / "raw_harvest"
@@ -29,7 +30,16 @@ def write_normalized_csv(price_list, output_path: Path) -> int:
     output_path.parent.mkdir(parents=True, exist_ok=True)
     with output_path.open("w", encoding="utf-8", newline="") as handle:
         writer = csv.writer(handle, delimiter=";")
-        writer.writerow(["codice", "descrizione", "um", "prezzo_unitario", "categoria", "note"])
+        writer.writerow(
+            [
+                "codice",
+                "descrizione",
+                "um",
+                "prezzo_unitario",
+                "categoria",
+                "note",
+            ]
+        )
         for item in price_list.items:
             writer.writerow(
                 [
@@ -45,7 +55,9 @@ def write_normalized_csv(price_list, output_path: Path) -> int:
 
 
 def main():
-    service = RegionalPriceListService(request_timeout=12, max_search_candidates=4)
+    service = RegionalPriceListService(
+        request_timeout=12, max_search_candidates=4
+    )
     RAW_DIR.mkdir(parents=True, exist_ok=True)
     BUNDLED_DIR.mkdir(parents=True, exist_ok=True)
 
@@ -69,29 +81,40 @@ def main():
             result = service.download_latest(source.key, str(RAW_DIR))
             entry["source_page"] = str(result["page_url"])
             entry["update_url"] = str(result["file_url"])
-            entry["local_download"] = str(Path(result["file_path"]).relative_to(ROOT))
+            entry["local_download"] = str(
+                Path(result["file_path"]).relative_to(ROOT)
+            )
             entry["format"] = str(result["file_extension"])
 
             if result["importable"]:
                 try:
-                    price_list = load_price_list(result["file_path"], source_url=result["file_url"])
+                    price_list = load_price_list(
+                        result["file_path"], source_url=result["file_url"]
+                    )
                     csv_name = f"{source.key}_{slug_name(source.name)}.csv"
                     local_dataset = BUNDLED_DIR / csv_name
                     count = write_normalized_csv(price_list, local_dataset)
                     entry["status"] = "bundled"
-                    entry["local_dataset"] = str(local_dataset.relative_to(ROOT))
+                    entry["local_dataset"] = str(
+                        local_dataset.relative_to(ROOT)
+                    )
                     entry["item_count"] = count
-                    entry["notes"] = "Dataset ufficiale scaricato e normalizzato automaticamente."
+                    entry["notes"] = (
+                        "Dataset ufficiale scaricato e normalizzato "
+                        "automaticamente."
+                    )
                 except (PriceListFormatError, Exception) as exc:
                     entry["status"] = "manual_required"
                     entry["notes"] = (
-                        "File ufficiale scaricato ma non convertibile in modo affidabile. "
+                        "File ufficiale scaricato ma non convertibile in modo "
+                        "affidabile. "
                         f"Dettaglio: {exc}"
                     )
             else:
                 entry["status"] = "manual_required"
                 entry["notes"] = (
-                    "Il portale ufficiale pubblica un formato non importabile in automatico "
+                    "Il portale ufficiale pubblica un formato non importabile "
+                    "in automatico "
                     f"({entry['format']})."
                 )
         except Exception as exc:

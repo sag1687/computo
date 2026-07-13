@@ -6,10 +6,19 @@ The names imported here are intentionally re-exported for the other modules
 
 from qgis.core import QgsLayoutExporter, QgsUnitTypes  # noqa: F401
 from qgis.PyQt.QtCore import (  # noqa: F401
-    QDateTime, QRectF, Qt, QStandardPaths, QUrl, QVariant,
+    QDateTime,
+    QRectF,
+    Qt,
+    QStandardPaths,
+    QUrl,
+    QVariant,
 )
 from qgis.PyQt.QtGui import (  # noqa: F401
-    QColor, QDesktopServices, QFont, QIcon, QTextDocument,
+    QColor,
+    QDesktopServices,
+    QFont,
+    QIcon,
+    QTextDocument,
 )
 from qgis.PyQt.QtPrintSupport import QPrinter  # noqa: F401
 from qgis.PyQt.QtWidgets import (  # noqa: F401
@@ -72,15 +81,23 @@ PRINTER_PDF_FORMAT = getattr(
     "PdfFormat",
 )
 
-LAYOUT_UNIT_MM = getattr(getattr(QgsUnitTypes, "LayoutUnit", QgsUnitTypes), "LayoutMillimeters")
+LAYOUT_UNIT_MM = getattr(
+    getattr(QgsUnitTypes, "LayoutUnit", QgsUnitTypes), "LayoutMillimeters"
+)
 LAYOUT_EXPORT_SUCCESS = getattr(
     getattr(QgsLayoutExporter, "ExportResult", QgsLayoutExporter),
     "Success",
 )
 
-POLICY_EXPANDING = getattr(getattr(QSizePolicy, "Policy", QSizePolicy), "Expanding")
-POLICY_PREFERRED = getattr(getattr(QSizePolicy, "Policy", QSizePolicy), "Preferred")
-POLICY_MINIMUM_EXPANDING = getattr(getattr(QSizePolicy, "Policy", QSizePolicy), "MinimumExpanding")
+POLICY_EXPANDING = getattr(
+    getattr(QSizePolicy, "Policy", QSizePolicy), "Expanding"
+)
+POLICY_PREFERRED = getattr(
+    getattr(QSizePolicy, "Policy", QSizePolicy), "Preferred"
+)
+POLICY_MINIMUM_EXPANDING = getattr(
+    getattr(QSizePolicy, "Policy", QSizePolicy), "MinimumExpanding"
+)
 POLICY_FIXED = getattr(getattr(QSizePolicy, "Policy", QSizePolicy), "Fixed")
 
 FRAME_NO_FRAME = getattr(getattr(QFrame, "Shape", QFrame), "NoFrame")

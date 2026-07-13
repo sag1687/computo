@@ -15,10 +15,42 @@ def _file_uri(path: str) -> str:
     return Path(path).expanduser().resolve().as_uri()
 
 
+_SAL_STYLE = """
+          body { font-family: Arial, sans-serif; color: #1c2735; margin: 24px;
+          }
+          h1 { color: #14365c; margin: 0 0 6px 0; }
+          h2 { color: #1f2933; margin-top: 28px; }
+          .header { width: 100%; border-collapse: collapse; margin-bottom:
+          18px; }
+          .header td { border: none; vertical-align: top; padding: 0; }
+          .logo { max-width: 140px; max-height: 90px; }
+          .subtitle { margin: 0; color: #45607d; }
+          .meta { background: #eef4fb; border: 1px solid #c7d8eb; padding:
+          12px; border-radius: 8px; }
+          .badge { display: inline-block; background: #14365c; color: white;
+          padding: 4px 10px; border-radius: 999px; font-size: 11px;
+          margin-right: 6px; }
+          table { width: 100%; border-collapse: collapse; margin-top: 12px; }
+          th, td { border: 1px solid #d6dee5; padding: 8px; font-size: 11px;
+          vertical-align: top; }
+          th { background: #e8f0fa; text-align: left; }
+          td.num { text-align: right; white-space: nowrap; }
+          .refs th { width: 28%; background: #f4f7fb; }
+          .sal-grid td { width: 50%; }
+          .map-box { margin-top: 14px; text-align: center; }
+          .map { width: 100%; max-width: 760px; border: 1px solid #cfd8e3; }
+          .footer-note { margin-top: 22px; color: #415468; }
+          .page-break { page-break-before: always; }
+        """
+
+
 def build_category_summary(summary_rows: list[dict]) -> list[dict]:
     totals: dict[str, float] = defaultdict(float)
     for row in summary_rows:
-        category = str(row.get("category") or "Senza categoria").strip() or "Senza categoria"
+        category = (
+            str(row.get("category") or "Senza categoria").strip()
+            or "Senza categoria"
+        )
         totals[category] += float(row.get("total_price") or 0.0)
 
     return [
@@ -26,7 +58,9 @@ def build_category_summary(summary_rows: list[dict]) -> list[dict]:
             "category": category,
             "total_price": round(total, 2),
         }
-        for category, total in sorted(totals.items(), key=lambda item: item[0].lower())
+        for category, total in sorted(
+            totals.items(), key=lambda item: item[0].lower()
+        )
     ]
 
 
@@ -37,7 +71,9 @@ def compute_sal_totals(
     vat_percent: float = 22.0,
     previous_paid: float = 0.0,
 ) -> dict[str, float]:
-    works_total = round(sum(float(row.get("total_price") or 0.0) for row in summary_rows), 2)
+    works_total = round(
+        sum(float(row.get("total_price") or 0.0) for row in summary_rows), 2
+    )
     gross_total = round(works_total + security_costs, 2)
     retention_amount = round(gross_total * (retention_percent / 100.0), 2)
     certified_to_date = round(gross_total - retention_amount, 2)
@@ -81,14 +117,17 @@ def build_accounting_html(
     logo_html = ""
     if profile.logo_path:
         try:
-            logo_html = f'<img class="logo" src="{_file_uri(profile.logo_path)}" />'
+            logo_html = (
+                f'<img class="logo" src="{_file_uri(profile.logo_path)}" />'
+            )
         except Exception:
             logo_html = ""
 
     references_html = ""
     if profile.references:
         references_html = "".join(
-            f"<tr><th>{escape(reference.label)}</th><td>{escape(reference.value)}</td></tr>"
+            f"<tr><th>{escape(reference.label)}</th>"
+            f"<td>{escape(reference.value)}</td></tr>"
             for reference in profile.references
         )
 
@@ -144,42 +183,88 @@ def build_accounting_html(
         )
         for row in journal_entries
     )
+    journal_section = (
+        (
+            "<div class='page-break'></div><h2>Giornale lavori</h2>"
+            "<table><thead><tr><th>Data</th><th>Titolo</th>"
+            "<th>Meteo</th><th>Maestranze</th><th>Descrizione</th>"
+            "</tr></thead><tbody>" + journal_rows + "</tbody></table>"
+        )
+        if journal_rows
+        else ""
+    )
     map_html = ""
     if map_image_path:
         try:
             map_html = (
                 "<div class='page-break'></div>"
                 f"<h2>{escape(profile.map_title)}</h2>"
-                f"<div class='map-box'><img class='map' width='720' src='{_file_uri(map_image_path)}' /></div>"
+                f"<div class='map-box'><img class='map' width='720' "
+                f"src='{_file_uri(map_image_path)}' /></div>"
             )
         except Exception:
             map_html = ""
+
+    footer_line = (
+        f"<p class='footer-note'>{escape(profile.footer_text)}</p>"
+        if profile.footer_text
+        else ""
+    )
+    subtitle_default = "Libretto, registro, SAL e certificato di pagamento"
+    subtitle_line = (
+        f'<p class="subtitle">'
+        f'{escape(profile.subtitle or subtitle_default)}</p>'
+    )
+    sal_number_line = (
+        "<span class=\"badge\">SAL n. "
+        f"{escape(str(sal_record.get('sal_number') or 1))}</span>"
+    )
+    references_section = (
+        "<h2>Riferimenti</h2><table class='refs'><tbody>"
+        + references_html
+        + "</tbody></table>"
+        if references_html
+        else ""
+    )
+    sal_grid_rows = "".join(
+        f'<tr><th>{label}</th><td class="num">{value}</td></tr>'
+        for label, value in (
+            ("Importo lavori", format_number(totals["works_total"])),
+            ("Oneri sicurezza", format_number(totals["security_costs"])),
+            ("Importo lordo SAL", format_number(totals["gross_total"])),
+            (
+                "Ritenuta "
+                f"{format_number(totals['retention_percent'], 2)}%",
+                format_number(totals["retention_amount"]),
+            ),
+            (
+                "Certificato a tutto il SAL",
+                format_number(totals["certified_to_date"]),
+            ),
+            (
+                "Già certificato / pagato",
+                format_number(totals["previous_paid"]),
+            ),
+            (
+                "Da liquidare imponibile",
+                format_number(totals["due_before_vat"]),
+            ),
+            (
+                f"IVA {format_number(totals['vat_percent'], 2)}%",
+                format_number(totals["vat_due"]),
+            ),
+            (
+                "Totale certificato",
+                f"<b>{format_number(totals['total_due'])}</b>",
+            ),
+        )
+    )
 
     return f"""
     <html>
       <head>
         <meta charset="utf-8" />
-        <style>
-          body {{ font-family: Arial, sans-serif; color: #1c2735; margin: 24px; }}
-          h1 {{ color: #14365c; margin: 0 0 6px 0; }}
-          h2 {{ color: #1f2933; margin-top: 28px; }}
-          .header {{ width: 100%; border-collapse: collapse; margin-bottom: 18px; }}
-          .header td {{ border: none; vertical-align: top; padding: 0; }}
-          .logo {{ max-width: 140px; max-height: 90px; }}
-          .subtitle {{ margin: 0; color: #45607d; }}
-          .meta {{ background: #eef4fb; border: 1px solid #c7d8eb; padding: 12px; border-radius: 8px; }}
-          .badge {{ display: inline-block; background: #14365c; color: white; padding: 4px 10px; border-radius: 999px; font-size: 11px; margin-right: 6px; }}
-          table {{ width: 100%; border-collapse: collapse; margin-top: 12px; }}
-          th, td {{ border: 1px solid #d6dee5; padding: 8px; font-size: 11px; vertical-align: top; }}
-          th {{ background: #e8f0fa; text-align: left; }}
-          td.num {{ text-align: right; white-space: nowrap; }}
-          .refs th {{ width: 28%; background: #f4f7fb; }}
-          .sal-grid td {{ width: 50%; }}
-          .map-box {{ margin-top: 14px; text-align: center; }}
-          .map {{ width: 100%; max-width: 760px; border: 1px solid #cfd8e3; }}
-          .footer-note {{ margin-top: 22px; color: #415468; }}
-          .page-break {{ page-break-before: always; }}
-        </style>
+        <style>{_SAL_STYLE}</style>
       </head>
       <body>
         <table class="header">
@@ -187,34 +272,26 @@ def build_accounting_html(
             <td style="width:160px">{logo_html}</td>
             <td>
               <h1>{escape(profile.title or 'Contabilità lavori')}</h1>
-              <p class="subtitle">{escape(profile.subtitle or 'Libretto, registro, SAL e certificato di pagamento')}</p>
+              {subtitle_line}
             </td>
           </tr>
         </table>
         <div class="meta">
           <span class="badge">Run #{metadata.run_id}</span>
-          <span class="badge">SAL n. {escape(str(sal_record.get('sal_number') or 1))}</span>
+          {sal_number_line}
           <p><b>Layer:</b> {escape(metadata.layer_name)}</p>
           <p><b>Prezziario:</b> {escape(metadata.price_list_name)}</p>
-          <p><b>Data SAL:</b> {escape(str(sal_record.get('sal_date') or ''))}</p>
-          <p><b>Note SAL:</b> {escape(str(sal_record.get('notes') or 'Nessuna'))}</p>
+          <p><b>Data SAL:</b>
+          {escape(str(sal_record.get('sal_date') or ''))}</p>
+          <p><b>Note SAL:</b>
+          {escape(str(sal_record.get('notes') or 'Nessuna'))}</p>
         </div>
 
-        {"<h2>Riferimenti</h2><table class='refs'><tbody>" + references_html + "</tbody></table>" if references_html else ""}
+        {references_section}
 
         <h2>Certificato di pagamento</h2>
         <table class="sal-grid">
-          <tbody>
-            <tr><th>Importo lavori</th><td class="num">{format_number(totals['works_total'])}</td></tr>
-            <tr><th>Oneri sicurezza</th><td class="num">{format_number(totals['security_costs'])}</td></tr>
-            <tr><th>Importo lordo SAL</th><td class="num">{format_number(totals['gross_total'])}</td></tr>
-            <tr><th>Ritenuta {format_number(totals['retention_percent'], 2)}%</th><td class="num">{format_number(totals['retention_amount'])}</td></tr>
-            <tr><th>Certificato a tutto il SAL</th><td class="num">{format_number(totals['certified_to_date'])}</td></tr>
-            <tr><th>Già certificato / pagato</th><td class="num">{format_number(totals['previous_paid'])}</td></tr>
-            <tr><th>Da liquidare imponibile</th><td class="num">{format_number(totals['due_before_vat'])}</td></tr>
-            <tr><th>IVA {format_number(totals['vat_percent'], 2)}%</th><td class="num">{format_number(totals['vat_due'])}</td></tr>
-            <tr><th>Totale certificato</th><td class="num"><b>{format_number(totals['total_due'])}</b></td></tr>
-          </tbody>
+          <tbody>{sal_grid_rows}</tbody>
         </table>
 
         <h2>Sommario per categoria</h2>
@@ -247,9 +324,9 @@ def build_accounting_html(
           <tbody>{libretto_rows}</tbody>
         </table>
 
-        {"<div class='page-break'></div><h2>Giornale lavori</h2><table><thead><tr><th>Data</th><th>Titolo</th><th>Meteo</th><th>Maestranze</th><th>Descrizione</th></tr></thead><tbody>" + journal_rows + "</tbody></table>" if journal_rows else ""}
+        {journal_section}
         {map_html}
-        {f"<p class='footer-note'>{escape(profile.footer_text)}</p>" if profile.footer_text else ""}
+        {footer_line}
       </body>
     </html>
     """
@@ -298,7 +375,17 @@ def export_accounting_xlsx(
     ]
 
     libretto_sheet = [
-        ["N.", "Layer", "Feature ID", "Codice", "Descrizione", "UM", "Quantità", "Prezzo unitario", "Importo"]
+        [
+            "N.",
+            "Layer",
+            "Feature ID",
+            "Codice",
+            "Descrizione",
+            "UM",
+            "Quantità",
+            "Prezzo unitario",
+            "Importo",
+        ]
     ]
     for index, row in enumerate(detail_rows, start=1):
         libretto_sheet.append(
@@ -316,7 +403,16 @@ def export_accounting_xlsx(
         )
 
     registro_sheet = [
-        ["N.", "Codice", "Descrizione", "Categoria", "UM", "Quantità", "Prezzo unitario", "Importo"]
+        [
+            "N.",
+            "Codice",
+            "Descrizione",
+            "Categoria",
+            "UM",
+            "Quantità",
+            "Prezzo unitario",
+            "Importo",
+        ]
     ]
     for index, row in enumerate(summary_rows, start=1):
         registro_sheet.append(

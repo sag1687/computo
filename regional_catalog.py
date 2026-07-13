@@ -7,7 +7,6 @@ from .bundled_datasets import BUNDLED_DATASETS
 from .price_parser import EXPECTED_HEADERS, format_expectations_text
 from .regional_sources import REGIONAL_SOURCES
 
-
 STATUS_LABELS = {
     "bundled": "Dataset pronto",
     "manual_required": "Conversione manuale",
@@ -54,7 +53,9 @@ class RegionalCatalogEntry:
 
 
 def _normalize_name(text: str) -> str:
-    return "".join(char.lower() if char.isalnum() else "-" for char in text).strip("-")
+    return "".join(
+        char.lower() if char.isalnum() else "-" for char in text
+    ).strip("-")
 
 
 def _load_catalog_file(plugin_dir: str) -> dict[str, dict]:
@@ -103,7 +104,9 @@ def _count_dataset_items(path: str) -> int:
         return 0
 
 
-def load_regional_catalog(plugin_dir: str, download_dir: str = "") -> list[RegionalCatalogEntry]:
+def load_regional_catalog(
+    plugin_dir: str, download_dir: str = ""
+) -> list[RegionalCatalogEntry]:
     catalog_data = _load_catalog_file(plugin_dir)
     bundled_lookup = _bundled_by_source_key()
     entries: list[RegionalCatalogEntry] = []
@@ -115,8 +118,12 @@ def load_regional_catalog(plugin_dir: str, download_dir: str = "") -> list[Regio
         status = raw.get("status") or "unresolved"
         source_page = raw.get("source_page") or source.homepage
         update_url = raw.get("update_url") or ""
-        local_dataset = resolve_relative_path(plugin_dir, raw.get("local_dataset", ""))
-        local_download = resolve_relative_path(plugin_dir, raw.get("local_download", ""))
+        local_dataset = resolve_relative_path(
+            plugin_dir, raw.get("local_dataset", "")
+        )
+        local_download = resolve_relative_path(
+            plugin_dir, raw.get("local_download", "")
+        )
 
         if not local_download:
             local_download = _latest_download(download_dir, source.key)
@@ -127,9 +134,15 @@ def load_regional_catalog(plugin_dir: str, download_dir: str = "") -> list[Regio
             update_url = dataset.update_url or update_url
             status = "bundled"
             raw["notes"] = dataset.notes or raw.get("notes", "")
-            raw["item_count"] = raw.get("item_count") or _count_dataset_items(local_dataset)
+            raw["item_count"] = raw.get("item_count") or _count_dataset_items(
+                local_dataset
+            )
 
-        if status != "manual_required" and local_download.endswith(".pdf") and not update_url:
+        if (
+            status != "manual_required"
+            and local_download.endswith(".pdf")
+            and not update_url
+        ):
             local_download = ""
 
         entries.append(
@@ -144,7 +157,8 @@ def load_regional_catalog(plugin_dir: str, download_dir: str = "") -> list[Regio
                 local_dataset=local_dataset,
                 local_download=local_download,
                 item_count=int(raw.get("item_count") or 0),
-                format=raw.get("format") or Path(local_download).suffix.lower(),
+                format=raw.get("format")
+                or Path(local_download).suffix.lower(),
                 bundled_key=getattr(dataset, "key", ""),
             )
         )
@@ -152,7 +166,9 @@ def load_regional_catalog(plugin_dir: str, download_dir: str = "") -> list[Regio
     return sorted(entries, key=lambda entry: entry.name.lower())
 
 
-def ensure_manual_template(output_dir: str, entry: RegionalCatalogEntry) -> dict[str, str]:
+def ensure_manual_template(
+    output_dir: str, entry: RegionalCatalogEntry
+) -> dict[str, str]:
     folder = Path(output_dir)
     folder.mkdir(parents=True, exist_ok=True)
 
@@ -174,9 +190,11 @@ def ensure_manual_template(output_dir: str, entry: RegionalCatalogEntry) -> dict
                     format_expectations_text(),
                     "",
                     f"Pagina ufficiale: {entry.source_page or entry.homepage}",
-                    f"Download / aggiornamento: {entry.update_url or 'non disponibile'}",
+                    f"Download / aggiornamento: "
+                    f"{entry.update_url or 'non disponibile'}",
                     "",
-                    "Nota: il template contiene solo l'intestazione per evitare import fittizi.",
+                    "Nota: il template contiene solo l'intestazione per "
+                    "evitare import fittizi.",
                 ]
             ),
             encoding="utf-8",

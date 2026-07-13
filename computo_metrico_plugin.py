@@ -14,7 +14,9 @@ class ComputoMetricoPlugin:
 
     def initGui(self):
         icon_path = os.path.join(self.plugin_dir, "assets", "icon.svg")
-        self.action = QAction(QIcon(icon_path), self.menu_name, self.iface.mainWindow())
+        self.action = QAction(
+            QIcon(icon_path), self.menu_name, self.iface.mainWindow()
+        )
         self.action.triggered.connect(self.run)
 
         self.iface.addPluginToMenu(self.menu_name, self.action)

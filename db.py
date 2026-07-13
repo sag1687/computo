@@ -13,7 +13,6 @@ from .models import (
     ReportReference,
 )
 
-
 SCHEMA = """
 PRAGMA foreign_keys = ON;
 
@@ -173,7 +172,9 @@ class DatabaseManager:
                 for reference in profile.references
             ],
         }
-        self.set_setting("report_profile_json", json.dumps(payload, ensure_ascii=False))
+        self.set_setting(
+            "report_profile_json", json.dumps(payload, ensure_ascii=False)
+        )
 
     def load_report_profile(self) -> ReportProfile:
         raw = self.get_setting("report_profile_json", "")
@@ -191,16 +192,19 @@ class DatabaseManager:
                 value=str(item.get("value", "")).strip(),
             )
             for item in payload.get("references", [])
-            if str(item.get("label", "")).strip() or str(item.get("value", "")).strip()
+            if str(item.get("label", "")).strip()
+            or str(item.get("value", "")).strip()
         ]
         return ReportProfile(
-            title=str(payload.get("title", "")).strip() or "Computo metrico estimativo",
+            title=str(payload.get("title", "")).strip()
+            or "Computo metrico estimativo",
             subtitle=str(payload.get("subtitle", "")).strip(),
             organization=str(payload.get("organization", "")).strip(),
             logo_path=str(payload.get("logo_path", "")).strip(),
             footer_text=str(payload.get("footer_text", "")).strip(),
             include_map=bool(payload.get("include_map", True)),
-            map_title=str(payload.get("map_title", "")).strip() or "Mappa di inquadramento",
+            map_title=str(payload.get("map_title", "")).strip()
+            or "Mappa di inquadramento",
             references=references,
         )
 
@@ -211,7 +215,8 @@ class DatabaseManager:
         with self.connect() as connection:
             cursor = connection.execute(
                 """
-                INSERT INTO price_lists(name, source_type, source_path, source_url, imported_at, notes)
+                INSERT INTO price_lists(name, source_type, source_path,
+                source_url, imported_at, notes)
                 VALUES(?, ?, ?, ?, ?, ?)
                 """,
                 (
@@ -228,7 +233,8 @@ class DatabaseManager:
             connection.executemany(
                 """
                 INSERT INTO price_items(
-                    price_list_id, code, description, unit, unit_price, category, notes
+                    price_list_id, code, description, unit, unit_price,
+                    category, notes
                 ) VALUES(?, ?, ?, ?, ?, ?, ?)
                 """,
                 [
@@ -250,19 +256,19 @@ class DatabaseManager:
 
     def list_price_lists(self) -> list[dict]:
         with self.connect() as connection:
-            rows = connection.execute(
-                """
+            rows = connection.execute("""
                 SELECT pl.*,
                        COUNT(pi.id) AS items_count
                 FROM price_lists pl
                 LEFT JOIN price_items pi ON pi.price_list_id = pl.id
                 GROUP BY pl.id
                 ORDER BY pl.imported_at DESC, pl.id DESC
-                """
-            ).fetchall()
+                """).fetchall()
         return [dict(row) for row in rows]
 
-    def list_price_items(self, price_list_id: int, limit: int | None = None) -> list[dict]:
+    def list_price_items(
+        self, price_list_id: int, limit: int | None = None
+    ) -> list[dict]:
         sql = """
             SELECT code, description, unit, unit_price, category, notes
             FROM price_items
@@ -301,11 +307,14 @@ class DatabaseManager:
             for row in rows
         }
 
-    def add_download_link(self, label: str, url: str, region: str = "", notes: str = "") -> int:
+    def add_download_link(
+        self, label: str, url: str, region: str = "", notes: str = ""
+    ) -> int:
         with self.connect() as connection:
             cursor = connection.execute(
                 """
-                INSERT INTO download_links(label, region, url, notes, created_at)
+                INSERT INTO download_links(label, region, url, notes,
+                created_at)
                 VALUES(?, ?, ?, ?, ?)
                 """,
                 (label, region, url, notes, now_iso()),
@@ -314,18 +323,18 @@ class DatabaseManager:
 
     def list_download_links(self) -> list[dict]:
         with self.connect() as connection:
-            rows = connection.execute(
-                """
+            rows = connection.execute("""
                 SELECT id, label, region, url, notes, created_at
                 FROM download_links
                 ORDER BY created_at DESC, id DESC
-                """
-            ).fetchall()
+                """).fetchall()
         return [dict(row) for row in rows]
 
     def delete_download_link(self, link_id: int) -> None:
         with self.connect() as connection:
-            connection.execute("DELETE FROM download_links WHERE id = ?", (link_id,))
+            connection.execute(
+                "DELETE FROM download_links WHERE id = ?", (link_id,)
+            )
 
     def create_measurement_run(
         self,
@@ -341,7 +350,8 @@ class DatabaseManager:
         with self.connect() as connection:
             cursor = connection.execute(
                 """
-                INSERT INTO measurement_runs(layer_name, price_list_id, crs_authid, generated_at, notes)
+                INSERT INTO measurement_runs(layer_name, price_list_id,
+                crs_authid, generated_at, notes)
                 VALUES(?, ?, ?, ?, ?)
                 """,
                 (layer_name, price_list_id, crs_authid, now_iso(), notes),
@@ -352,7 +362,8 @@ class DatabaseManager:
                 """
                 INSERT INTO measurement_items(
                     run_id, layer_name, feature_id, geometry_type, price_code,
-                    description, unit, quantity, unit_price, total_price, category, note
+                    description, unit, quantity, unit_price, total_price,
+                    category, note
                 ) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 [
@@ -379,8 +390,7 @@ class DatabaseManager:
 
     def list_runs(self) -> list[dict]:
         with self.connect() as connection:
-            rows = connection.execute(
-                """
+            rows = connection.execute("""
                 SELECT mr.id,
                        mr.layer_name,
                        mr.crs_authid,
@@ -388,14 +398,14 @@ class DatabaseManager:
                        mr.notes,
                        pl.name AS price_list_name,
                        COUNT(mi.id) AS items_count,
-                       ROUND(COALESCE(SUM(mi.total_price), 0), 2) AS grand_total
+                       ROUND(COALESCE(SUM(mi.total_price), 0), 2) AS
+                       grand_total
                 FROM measurement_runs mr
                 JOIN price_lists pl ON pl.id = mr.price_list_id
                 LEFT JOIN measurement_items mi ON mi.run_id = mr.id
                 GROUP BY mr.id
                 ORDER BY mr.generated_at DESC, mr.id DESC
-                """
-            ).fetchall()
+                """).fetchall()
         return [dict(row) for row in rows]
 
     def _resolve_run_id(self, run_id: int | None) -> int:
@@ -462,7 +472,8 @@ class DatabaseManager:
         with self.connect() as connection:
             rows = connection.execute(
                 """
-                SELECT layer_name, feature_id, geometry_type, price_code, description,
+                SELECT layer_name, feature_id, geometry_type, price_code,
+                description,
                        unit, ROUND(quantity, 4) AS quantity,
                        ROUND(unit_price, 4) AS unit_price,
                        ROUND(total_price, 2) AS total_price,
@@ -490,7 +501,8 @@ class DatabaseManager:
             cursor = connection.execute(
                 """
                 INSERT INTO sal_documents(
-                    run_id, sal_number, sal_date, security_costs, retention_percent,
+                    run_id, sal_number, sal_date, security_costs,
+                    retention_percent,
                     vat_percent, previous_paid, notes, created_at
                 ) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
@@ -560,16 +572,26 @@ class DatabaseManager:
             cursor = connection.execute(
                 """
                 INSERT INTO journal_entries(
-                    run_id, work_date, title, weather, workers, description, created_at
+                    run_id, work_date, title, weather, workers, description,
+                    created_at
                 ) VALUES(?, ?, ?, ?, ?, ?, ?)
                 """,
-                (run_id, work_date, title, weather, workers, description, now_iso()),
+                (
+                    run_id,
+                    work_date,
+                    title,
+                    weather,
+                    workers,
+                    description,
+                    now_iso(),
+                ),
             )
             return int(cursor.lastrowid)
 
     def list_journal_entries(self, run_id: int | None = None) -> list[dict]:
         sql = """
-            SELECT id, run_id, work_date, title, weather, workers, description, created_at
+            SELECT id, run_id, work_date, title, weather, workers,
+            description, created_at
             FROM journal_entries
         """
         params: list[object] = []
@@ -583,4 +605,6 @@ class DatabaseManager:
 
     def delete_journal_entry(self, entry_id: int) -> None:
         with self.connect() as connection:
-            connection.execute("DELETE FROM journal_entries WHERE id = ?", (entry_id,))
+            connection.execute(
+                "DELETE FROM journal_entries WHERE id = ?", (entry_id,)
+            )

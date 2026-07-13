@@ -3,7 +3,7 @@ name=Computo Metrico GIS
 qgisMinimumVersion=3.22
 qgisMaximumVersion=4.99
 description=Computo metrico e contabilita lavori in QGIS con prezziari regionali o CSV/XLSX/DCF, SAL, report PDF/XLSX e progetto dimostrativo. / Bill of quantities and works accounting in QGIS with Italian regional price lists or CSV/XLSX/DCF files, progress payments (SAL), PDF/XLSX reports and a demo project.
-version=0.3.1
+version=0.3.2
 author=Dott. Sarino Alfonso Grande
 email=info@sinocloud.it
 about=IT: Plugin sperimentale per computo metrico estimativo e contabilita lavori con database SQLite locale, import validato dei prezziari, misurazioni automatiche da geometrie, SAL, giornale lavori e reportistica professionale. I risultati vanno sempre verificati da un tecnico abilitato prima dell'uso contrattuale. / EN: Experimental plugin for bill of quantities and works accounting with a local SQLite database, validated price list import, automatic measurements from geometries, progress payments (SAL), works journal and professional reporting. Results must always be verified by a qualified professional before contractual use.
@@ -17,7 +17,10 @@ tags=computo metrico,contabilita lavori,prezziario,bill of quantities,csv,xlsx,d
 homepage=https://plugins.qgis.org/plugins/author/Dott.%20Sarino%20Alfonso%20Grande/
 tracker=https://github.com/sag1687
 repository=https://github.com/sag1687
-changelog=0.3.1
+changelog=0.3.2
+    - IT: Corretto E501 (righe troppo lunghe, PEP8) in tutto il plugin; CSS dei report HTML estratto in costanti dedicate
+    - EN: Fixed E501 (line too long, PEP8) across the whole plugin; report HTML CSS extracted into dedicated constants
+    0.3.1
     - IT: README completo bilingue con workflow, schede, formati supportati, limiti operativi e premesse d'uso per plugin sperimentale
     - EN: Complete bilingual README with workflow, tabs, supported formats, operational limits and usage premises for an experimental plugin
     - IT: Pulizia repository: aggiunto .ruff_cache a .gitignore e rimosse cache locali del plugin
